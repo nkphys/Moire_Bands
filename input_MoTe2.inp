@@ -1,0 +1,11 @@
+V_param_in_meV=8
+Psi_param_in_radians=-1.56381368
+omega_param_in_meV=-8.5
+Grid_ReciprocalLattice_L1=12
+Grid_ReciprocalLattice_L2=12
+a_monolayer_in_angstorm=3.472
+Twist_Theta_in_radians=0.0209439
+MStar_in_RestMass=0.62
+BZ_L1=48
+BZ_L2=48
+eps_DE=100

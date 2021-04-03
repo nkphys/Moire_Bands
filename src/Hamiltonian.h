@@ -238,7 +238,7 @@ void Hamiltonian::HTBCreate(){
 
                     //1
                     col = row;
-                    Ham_(row,col) += NIEnergy(kx_local - k_plusx, ky_local - k_plusy);
+                    Ham_(row,col) += NIEnergy(kx_local - k_plusx, ky_local - k_plusy) + (0.5*Parameters_.Vz_);
 
                     //2 i.e +/- b1
                     i1_neigh = i1 + 1;
@@ -312,7 +312,7 @@ void Hamiltonian::HTBCreate(){
 
                     //1
                     col = row;
-                    Ham_(row,col) += NIEnergy(kx_local - k_minusx, ky_local - k_minusy);
+                    Ham_(row,col) += NIEnergy(kx_local - k_minusx, ky_local - k_minusy) - (0.5*Parameters_.Vz_);
 
                     //2 i.e +/- b1
                     i1_neigh = i1 + 1;

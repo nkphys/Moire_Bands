@@ -10,6 +10,7 @@ public:
     double TwistTheta, a_monolayer, MStar, eps_DE;
     int Grid_L1, Grid_L2, ns;
     int BZ_L1, BZ_L2;
+    double Vz_;
 
     void Initialize(string inputfile_);
     double matchstring(string file,string match);
@@ -38,6 +39,7 @@ void Parameters::Initialize(string inputfile_){
     cout<<"a_moire (in Angstorm)= "<<a_moire<<endl;
     MStar = matchstring(inputfile_,"MStar_in_RestMass");
     eps_DE = matchstring(inputfile_, "eps_DE");
+    Vz_=matchstring(inputfile_,"Layer_Potential_Diff_Vz_in_meV");
 
     ns=Grid_L1*Grid_L2;
 }
