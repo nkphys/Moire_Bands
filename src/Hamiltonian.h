@@ -81,7 +81,7 @@ void Hamiltonian::Initialize(){
 
 
     //real space  effective H params
-    L1_eff=10;L2_eff=10;
+    L1_eff=12;L2_eff=12;
     Tij.resize(L1_eff*L2_eff);
     for(int i=0;i<L1_eff*L2_eff;i++){
         Tij[i].resize(L1_eff*L2_eff);
@@ -408,10 +408,10 @@ void Hamiltonian::Get_Wannier_function(int band){
 
 
     double rx_min, ry_min, rx_max, ry_max, d_rx, d_ry;
-    rx_min=-10.0*Parameters_.a_moire;
-    ry_min=-10.0*Parameters_.a_moire;
-    rx_max=10.0*Parameters_.a_moire;
-    ry_max=10.0*Parameters_.a_moire;
+    rx_min=-5.0*Parameters_.a_moire;
+    ry_min=-5.0*Parameters_.a_moire;
+    rx_max=5.0*Parameters_.a_moire;
+    ry_max=5.0*Parameters_.a_moire;
     int r_ind;
     int space_slices=200;
     d_rx=(rx_max-rx_min)/(space_slices);
@@ -419,10 +419,10 @@ void Hamiltonian::Get_Wannier_function(int band){
 
 
     double qx_min, qy_min, qx_max, qy_max, d_qx, d_qy;
-    qx_min=-4.0*PI;//Parameters_.a_moire;
-    qy_min=-4.0*PI;//Parameters_.a_moire;
-    qx_max=4.0*PI;//Parameters_.a_moire;
-    qy_max=4.0*PI;//Parameters_.a_moire;
+    qx_min=-0.5*PI;//Parameters_.a_moire;
+    qy_min=-0.5*PI;//Parameters_.a_moire;
+    qx_max=0.5*PI;//Parameters_.a_moire;
+    qy_max=0.5*PI;//Parameters_.a_moire;
     int q_slices=200;
     d_qx=(qx_max-qx_min)/(q_slices);
     d_qy=(qy_max-qy_min)/(q_slices);
@@ -430,6 +430,13 @@ void Hamiltonian::Get_Wannier_function(int band){
     double d_sqr=360000;
     double screening=0.0;
 
+
+    double q_max, d_q,  d_theta;
+    q_max=0.25*PI;
+    d_q=(q_max)/(q_slices);
+    int theta_slices=200;
+    d_theta = (2.0*PI)/(theta_slices);
+   
     int L1_,L2_;
     L1_=Parameters_.BZ_L1;
     L2_=Parameters_.BZ_L2;
@@ -450,6 +457,14 @@ void Hamiltonian::Get_Wannier_function(int band){
         Mq_[q1].resize(q_slices);
     }
 
+    Mat_2_Complex_doub Mq_SphC;
+    Mq_SphC.resize(q_slices);
+    for(int q_i=0;q_i<q_slices;q_i++){
+        Mq_SphC[q_i].resize(theta_slices);
+    }
+
+
+
     Mat_2_Complex_doub Vq_;
     Vq_.resize(q_slices);
     for(int q1=0;q1<q_slices;q1++){
@@ -462,6 +477,7 @@ void Hamiltonian::Get_Wannier_function(int band){
     //Tij[center_][center_p1]=0.0;
     eigen_no=(2*l1_*l2_)-1-band;
 
+     temp_factor=0.0;
     for(int n1=0;n1<L1_;n1++){
         for(int n2=0;n2<L2_;n2++){
 
@@ -474,6 +490,27 @@ void Hamiltonian::Get_Wannier_function(int band){
             Diagonalize(Dflag);
 
             //------------------
+
+
+
+	    //------------------
+/*
+	    int k_n=n1+L1_*n2;
+	   //Print C_{t,b}(k+n1G1 + n2G2) for fixed k, varying n1,n2
+	   string file_Ck_out="States_C_k" + to_string(k_n) +".txt";
+           ofstream FileCkOut(file_Ck_out.c_str());
+           FileCkOut<<"# n1 ,n2(brillioun zone) = "<<n1<<" "<<n2<<endl;
+           FileCkOut<<"#eigen_no(Reciprocal space vectors)  Cvalue"<<endl;
+
+	   for(int i1=0;i1<l1_;i1++){ //on Reciprocal lattice
+               for(int i2=0;i2<l2_;i2++){
+                int comp_n = Coordinates_.Nbasis(i1, i2, 0);	
+		FileCkOut<<i1<<"  "<<i2<<"   "<<Ham_(comp_n,eigen_no).real()<<"  "<<Ham_(comp_n,eigen_no).imag()<<endl;
+	   }
+	FileCkOut<<endl;
+	}
+*/			
+	   //------------------
 
 
             //Hopping-real space-------
@@ -492,7 +529,7 @@ void Hamiltonian::Get_Wannier_function(int band){
                     r_ind=rx_ind + (space_slices)*ry_ind;
                     for(int orb=0;orb<2;orb++){
                         Psi_state_[orb][r_ind]=0.0;
-                        for(int i1=0;i1<l1_;i1++){
+                        for(int i1=0;i1<l1_;i1++){ //on Reciprocal lattice
                             for(int i2=0;i2<l2_;i2++){
                                 kx_local = kx_ + (-(l1_/2)+i1)*(b1x_) + (-(l2_/2)+i2)*(b2x_);
                                 ky_local = ky_ + (-(l1_/2)+i1)*(b1y_) + (-(l2_/2)+i2)*(b2y_);
@@ -554,7 +591,7 @@ void Hamiltonian::Get_Wannier_function(int band){
     for(int rx_ind=0;rx_ind<space_slices;rx_ind++){
         for(int ry_ind=0;ry_ind<space_slices;ry_ind++){
             r_ind=rx_ind + (space_slices)*ry_ind;
-            checknorm += Wnr_state_[0][r_ind]*conj(Wnr_state_[0][r_ind]) + Wnr_state_[1][r_ind]*conj(Wnr_state_[1][r_ind]);
+            checknorm += d_rx*d_ry*(Wnr_state_[0][r_ind]*conj(Wnr_state_[0][r_ind]) + Wnr_state_[1][r_ind]*conj(Wnr_state_[1][r_ind]));
         }
     }
 
@@ -573,9 +610,23 @@ void Hamiltonian::Get_Wannier_function(int band){
     FileWNROut<<"#index rx ry W_bottom W_top  ....."<<endl;
     for(int rx_ind=0;rx_ind<space_slices;rx_ind++){
         for(int ry_ind=0;ry_ind<space_slices;ry_ind++){
+
+            complex<double> exp_kpr, exp_kmr;
+            
+	    kx_=(2.0*PI/Parameters_.a_moire)*(((-1.0*L1_)/3.0)*(1.0/(sqrt(3)*L1_))  +  ((-2.0*L2_)/3.0)*(1.0/(sqrt(3)*L2_)));
+            ky_=(2.0*PI/Parameters_.a_moire)*(((-1.0*L1_)/3.0) *(-1.0/(L1_))  +  ((-2.0*L2_)/3.0)*(1.0/(L2_)));
+	    exp_kpr=exp (-1.0*iota_complex*( (kx_*(rx_min + rx_ind*d_rx) ) + (ky_*(ry_min + ry_ind*d_ry) ) ) );
+
+
+	    kx_=(2.0*PI/Parameters_.a_moire)*(((-2.0*L1_)/3.0)*(1.0/(sqrt(3)*L1_))  +  ((-1.0*L2_)/3.0)*(1.0/(sqrt(3)*L2_)));
+            ky_=(2.0*PI/Parameters_.a_moire)*(((-2.0*L1_)/3.0) *(-1.0/(L1_))  +  ((-1.0*L2_)/3.0)*(1.0/(L2_)));
+            exp_kmr=exp (-1.0*iota_complex*( (kx_*(rx_min + rx_ind*d_rx) ) + (ky_*(ry_min + ry_ind*d_ry) )  ));
+
+
+
             r_ind=rx_ind + (space_slices)*ry_ind;
-            FileWNROut<<r_ind<<"  "<<(rx_min + rx_ind*d_rx)/(Parameters_.a_moire)<<"   "<<(ry_min + ry_ind*d_ry)/(Parameters_.a_moire)<<"   "<<abs(Wnr_state_[0][r_ind])<<"   "<<abs(Wnr_state_[1][r_ind])<<endl;
-            checknorm += Wnr_state_[0][r_ind]*conj(Wnr_state_[0][r_ind]) + Wnr_state_[1][r_ind]*conj(Wnr_state_[1][r_ind]);
+            FileWNROut<<r_ind<<"  "<<(rx_min + rx_ind*d_rx)/(Parameters_.a_moire)<<"   "<<(ry_min + ry_ind*d_ry)/(Parameters_.a_moire)<<"   "<<abs(Wnr_state_[0][r_ind])<<"   "<<abs(Wnr_state_[1][r_ind])<< "   "<<arg((exp_kpr*Wnr_state_[0][r_ind])/abs(Wnr_state_[0][r_ind]))<<"   "<< arg((exp_kmr*Wnr_state_[1][r_ind])/abs(Wnr_state_[1][r_ind]))<<endl;
+            checknorm += d_rx*d_ry*(Wnr_state_[0][r_ind]*conj(Wnr_state_[0][r_ind]) + Wnr_state_[1][r_ind]*conj(Wnr_state_[1][r_ind]));
         }
         FileWNROut<<endl;
 
@@ -603,8 +654,43 @@ void Hamiltonian::Get_Wannier_function(int band){
 
 
     //For Uij--------------------------------------------------------------------//
+
 /*
-    double qx_,qy_;
+  double q_max, d_q,  d_theta;
+    q_max=2.0*PI;
+    d_q=(q_max)/(q_slices);
+    int theta_slices=200;
+    d_theta = (2.0*PI)/(theta_slices);
+*/
+ 
+double q_val, theta_val;    
+double qx_,qy_;
+for(int q_ind=0;q_ind<q_slices;q_ind++){
+ q_val = q_ind*d_q;
+for(int theta_ind=0;theta_ind<theta_slices;theta_ind++){
+ theta_val = theta_ind*d_theta;
+
+qx_=q_val*cos(theta_val);
+qy_=q_val*sin(theta_val);
+
+
+      Mq_SphC[q_ind][theta_ind]=0.0;
+      for(int rx_ind=0;rx_ind<space_slices;rx_ind++){
+      for(int ry_ind=0;ry_ind<space_slices;ry_ind++){
+      r_ind=rx_ind + (space_slices)*ry_ind;
+      Mq_SphC[q_ind][theta_ind] += d_rx*d_ry*(
+      Wnr_state_[0][r_ind]*conj(Wnr_state_[0][r_ind]) +
+      Wnr_state_[1][r_ind]*conj(Wnr_state_[1][r_ind]) )
+                            *exp(iota_complex*(qx_*((rx_min + rx_ind*d_rx)) + qy_*((ry_min + ry_ind*d_ry))));
+                }
+            }
+
+
+}
+}
+
+
+
     for(int qx_ind=0;qx_ind<q_slices;qx_ind++){
         qx_=qx_min + qx_ind*d_qx;
         for(int qy_ind=0;qy_ind<q_slices;qy_ind++){
@@ -626,7 +712,7 @@ void Hamiltonian::Get_Wannier_function(int band){
     }
 
 
-
+/*
     double rx_, ry_;
     for(int qx_ind=0;qx_ind<q_slices;qx_ind++){
         qx_=qx_min + qx_ind*d_qx;
@@ -647,9 +733,9 @@ void Hamiltonian::Get_Wannier_function(int band){
         }
     }
 
+*/
 
-
-    //double Vq_;
+    double V_;
     for(int r1_=0;r1_<L1_eff;r1_++){
         for(int r2_=0;r2_<L2_eff;r2_++){
             center_neigh = (r1_) + L1_eff*(r2_);
@@ -659,13 +745,17 @@ void Hamiltonian::Get_Wannier_function(int band){
             //dis_x = ((r1_-(L1_eff/2)))*Parameters_.a_moire;
             //dis_y = ((r2_-(L2_eff/2)))*Parameters_.a_moire;
             Uij[center_][center_neigh]=0.0;
-            for(int qx_ind=0;qx_ind<q_slices;qx_ind++){
-                qx_=qx_min + qx_ind*d_qx;
-                for(int qy_ind=0;qy_ind<q_slices;qy_ind++){
-                    qy_=qy_min + qy_ind*d_qy;
+		for(int q_ind=0;q_ind<q_slices;q_ind++){
+		 q_val = q_ind*d_q;
+		for(int theta_ind=0;theta_ind<theta_slices;theta_ind++){
+		 theta_val = theta_ind*d_theta;
+		qx_=q_val*cos(theta_val);
+		qy_=q_val*sin(theta_val);
 
-                    //Vq_= (2*PI*14.3952*1000)/(Parameters_.eps_DE*(sqrt(qx_*qx_ + qy_*qy_)+eta_q));
-                    Uij[center_][center_neigh]+= (1.0/(4.0*PI*PI))*(d_qx*d_qy)*(Vq_[qx_ind][qy_ind]*abs(Mq_[qx_ind][qy_ind])*abs(Mq_[qx_ind][qy_ind]))
+
+      //Mq_SphC[q_ind][theta_ind]
+                    V_= (2*PI*14.3952*1000)/(Parameters_.eps_DE);
+                    Uij[center_][center_neigh]+= (1.0/(4.0*PI*PI))*(d_q*d_theta)*(V_*abs(Mq_SphC[q_ind][theta_ind])*abs(Mq_SphC[q_ind][theta_ind]))
                             *exp(iota_complex*( qx_*(dis_x) +  qy_*(dis_y) ));
                 }
             }
@@ -688,8 +778,35 @@ void Hamiltonian::Get_Wannier_function(int band){
 
     cout<<"----------------------------------------------------------------------------------"<<endl;
 
+    string Mq_file="Mq.txt";
+    ofstream MqFILE(Mq_file.c_str());
+
+    for(int qx_ind=0;qx_ind<q_slices;qx_ind++){
+        qx_=qx_min + qx_ind*d_qx;
+        for(int qy_ind=0;qy_ind<q_slices;qy_ind++){
+            qy_=qy_min + qy_ind*d_qy;
+            MqFILE<<qx_<<"   "<<qy_<<"   "<<Mq_[qx_ind][qy_ind].real()<<"   "<<Mq_[qx_ind][qy_ind].imag()<<endl;
+        }
+        MqFILE<<endl;
+    }
 
 
+    string MqSphC_file="MqSphC.txt";
+    ofstream MqSphCFILE(MqSphC_file.c_str());
+
+    for(int q_ind=0;q_ind<q_slices;q_ind++){
+	q_val = q_ind*d_q;
+	for(int theta_ind=0;theta_ind<theta_slices;theta_ind++){
+	theta_val = theta_ind*d_theta;         
+            MqSphCFILE<<q_val<<"   "<<theta_val<<"   "<<Mq_SphC[q_ind][theta_ind].real()<<"   "<<Mq_SphC[q_ind][theta_ind].imag()<<endl;
+        }
+        MqSphCFILE<<endl;
+    }
+
+
+
+
+/*
     string Vq_file="Vq.txt";
     ofstream VqFILE(Vq_file.c_str());
 
@@ -701,9 +818,6 @@ void Hamiltonian::Get_Wannier_function(int band){
         }
         VqFILE<<endl;
     }
-
-
-
 
     string Vr_file="Vr.txt";
     ofstream VrFILE(Vr_file.c_str());
@@ -718,8 +832,8 @@ void Hamiltonian::Get_Wannier_function(int band){
         VrFILE<<endl;
     }
 
-
-    */
+*/
+    
     //---------------------------------------------------------------------------
 
 

@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
         char Dflag='V';
         Hamiltonian_.Diagonalize(Dflag);
 
-        cout <<Hamiltonian_.Ham_.n_col()<<endl;
+        cout << k_path.size()<<"  "<<index <<"  "<<Hamiltonian_.Ham_.n_col()<<endl;
         FileBandsOut<<index<<"  "<<Hamiltonian_.kx_<<"  "<<Hamiltonian_.ky_<<"   ";
         for(int band=0;band<Hamiltonian_.Ham_.n_col();band++){
             FileBandsOut<<Hamiltonian_.eigs_[band]<<"  ";
